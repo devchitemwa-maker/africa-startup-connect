@@ -9,6 +9,7 @@
 
 <body class="bg-white text-gray-800">
 
+<!-- NAVBAR -->
 <header class="border-b">
   <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">Africa Startup Connect</h1>
@@ -22,20 +23,51 @@
   </div>
 </header>
 
-<section class="bg-gray-50 py-24 text-center">
-  <h2 class="text-5xl font-bold mb-6">
-    Build Real Businesses in Africa — Together
-  </h2>
-  <a href="#signup" class="bg-blue-600 text-white px-8 py-4 rounded-xl">
-    Create Free Account
-  </a>
+<!-- HERO -->
+<section class="bg-gray-50">
+  <div class="max-w-7xl mx-auto px-6 py-24 text-center">
+    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+      Build Real Businesses in Africa — Together
+    </h2>
+    <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-8">
+      Connect entrepreneurs, investors, and skilled partners to build real businesses.
+    </p>
+    <a href="#signup" class="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg">
+      Create Free Account
+    </a>
+  </div>
 </section>
 
+<!-- HOW -->
+<section id="how" class="py-20">
+  <div class="max-w-7xl mx-auto px-6 text-center">
+    <h3 class="text-3xl font-bold mb-12">How It Works</h3>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="p-6 border rounded-xl">Join</div>
+      <div class="p-6 border rounded-xl">Set Details</div>
+      <div class="p-6 border rounded-xl">Build Together</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section id="who" class="bg-gray-50 py-20">
+  <div class="max-w-7xl mx-auto px-6 text-center">
+    <h3 class="text-3xl font-bold mb-12">Who ASC Is For</h3>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="bg-white p-6 shadow rounded-xl">Entrepreneurs</div>
+      <div class="bg-white p-6 shadow rounded-xl">Investors</div>
+      <div class="bg-white p-6 shadow rounded-xl">Skilled Partners</div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
 <section id="signup" class="max-w-md mx-auto py-20 px-6">
-  <h3 class="text-2xl font-bold mb-6 text-center">Create Account</h3>
+  <h3 class="text-2xl font-bold mb-6 text-center">Create Your Account</h3>
 
   <input id="full_name" placeholder="Full Name" class="border p-3 rounded w-full mb-3" />
-  <input id="email" placeholder="Email" class="border p-3 rounded w-full mb-3" />
+  <input id="email" type="email" placeholder="Email" class="border p-3 rounded w-full mb-3" />
   <input id="password" type="password" placeholder="Password" class="border p-3 rounded w-full mb-3" />
 
   <select id="role" class="border p-3 rounded w-full mb-3">
@@ -62,31 +94,36 @@
   </button>
 </section>
 
-<section id="dashboard" class="hidden py-20 bg-gray-50 text-center">
-  <h2 class="text-3xl font-bold mb-4">
-    Welcome, <span id="profile_name"></span>
-  </h2>
-  <p>Role: <span id="profile_role"></span></p>
-  <p>Capital: <span id="profile_capital"></span></p>
-  <p>Country: <span id="profile_country"></span></p>
+<!-- DASHBOARD -->
+<section id="dashboard" class="hidden py-20 bg-gray-50">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <h2 class="text-3xl font-bold mb-4">
+      Welcome, <span id="profile-name"></span>
+    </h2>
+    <p>Role: <span id="profile-role"></span></p>
+    <p>Capital: <span id="profile-capital"></span></p>
+    <p>Country: <span id="profile-country"></span></p>
 
-  <button onclick="logout()" class="mt-6 border px-6 py-3 rounded">
-    Log Out
-  </button>
+    <button onclick="logout()" class="mt-10 border px-6 py-3 rounded">
+      Log Out
+    </button>
+  </div>
 </section>
 
 <footer class="border-t py-6 text-center text-gray-500">
-  ASC — Where Africa Builds Together
+  ASC — Where Africa Builds Together.
 </footer>
 
+<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const supabase = window.supabase.createClient(
   "https://unyvcihnjlkanwfrnoop.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
+  "YOUR_ANON_KEY_HERE"
 );
 
+/* AUTO LOGIN */
 document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabase.auth.getSession();
   if (data.session) {
@@ -95,44 +132,50 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+/* SIGN UP */
 async function signUp() {
-  const fullName = document.getElementById("full_name").value;
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const role = document.getElementById("role").value;
-  const capital = document.getElementById("capital").value;
-  const country = document.getElementById("country").value;
+  const fullName = full_name.value;
+  const emailVal = email.value;
+  const passwordVal = password.value;
+  const roleVal = role.value;
+  const capitalVal = capital.value;
+  const countryVal = country.value;
 
-  if (!fullName || !email || !password || !role || !capital || !country) {
+  if (!fullName || !emailVal || !passwordVal || !roleVal || !capitalVal || !countryVal) {
     return alert("Fill all fields");
   }
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email: emailVal,
+    password: passwordVal
+  });
   if (error) return alert(error.message);
 
   await supabase.from("profiles").insert({
     id: data.user.id,
     full_name: fullName,
-    role,
-    capital_range: capital,
-    country,
+    role: roleVal,
+    capital_range: capitalVal,
+    country: countryVal
   });
 
   showDashboard();
   loadProfile();
 }
 
+/* SIGN IN */
 async function signIn() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  });
   if (error) return alert(error.message);
 
   showDashboard();
   loadProfile();
 }
 
+/* LOAD PROFILE */
 async function loadProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data } = await supabase
@@ -141,17 +184,23 @@ async function loadProfile() {
     .eq("id", user.id)
     .single();
 
-  document.getElementById("profile_name").textContent = data.full_name;
-  document.getElementById("profile_role").textContent = data.role;
-  document.getElementById("profile_capital").textContent = data.capital_range;
-  document.getElementById("profile_country").textContent = data.country;
+  document.getElementById("profile-name").textContent = data.full_name;
+  document.getElementById("profile-role").textContent = data.role;
+  document.getElementById("profile-capital").textContent = data.capital_range;
+  document.getElementById("profile-country").textContent = data.country;
 }
 
+/* DASHBOARD */
 function showDashboard() {
-  document.getElementById("signup").style.display = "none";
-  document.getElementById("dashboard").classList.remove("hidden");
+  signup.style.display = "none";
+  how.style.display = "none";
+  who.style.display = "none";
+  dashboard.classList.remove("hidden");
+  window.scrollTo(0, dashboard.offsetTop);
+  history.replaceState(null, "", location.pathname);
 }
 
+/* LOGOUT */
 async function logout() {
   await supabase.auth.signOut();
   location.reload();
