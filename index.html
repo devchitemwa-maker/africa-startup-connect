@@ -140,11 +140,32 @@
       Country: <span id="profile-country" class="font-semibold"></span>
     </p>
 
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-xl shadow">Profile</div>
-      <div class="bg-white p-6 rounded-xl shadow">Matches</div>
-      <div class="bg-white p-6 rounded-xl shadow">Projects</div>
-    </div>
+   <div class="bg-white p-6 rounded-xl shadow max-w-xl mx-auto">
+  <h3 class="text-xl font-bold mb-4">Your Profile</h3>
+
+  <label class="block mb-2 text-sm">Role</label>
+  <select id="profile_role" class="border p-3 rounded w-full mb-4">
+    <option value="entrepreneur">Entrepreneur</option>
+    <option value="investor">Investor</option>
+    <option value="partner">Skilled Partner</option>
+  </select>
+
+  <label class="block mb-2 text-sm">Capital Range</label>
+  <select id="profile_capital" class="border p-3 rounded w-full mb-4">
+    <option value="1000-500000">K1,000 – K500,000</option>
+    <option value="1000-1000000">K1,000 – K1,000,000</option>
+  </select>
+
+  <label class="block mb-2 text-sm">Country</label>
+  <input id="profile_country" type="text"
+    class="border p-3 rounded w-full mb-4" />
+
+  <button onclick="updateProfile()"
+    class="bg-blue-600 text-white w-full py-3 rounded">
+    Save Profile
+  </button>
+</div>
+
 
     <button onclick="logout()" class="mt-10 border px-6 py-3 rounded">
       Log Out
@@ -175,6 +196,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabaseClient.auth.getSession();
   if (data.session) {
     showDashboard();
+    async function loadProfile() {
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Profile load error:", error);
+    return;
+  }
+
+  document.getElementById("profile_role").value = data.role;
+  document.getElementById("profile_capital").value = data.capital_range;
+  document.getElementById("profile_country").value = data.country;
+}
+
     await loadUserProfile();
   }
 });
@@ -235,7 +279,43 @@ async function signUp() {
       country,
     });
 
-    showDashboard();
+   function showDashboard() {
+  document.getElementById("signup").style.display = "none";
+
+  const dashboard = document.getElementById("dashboard");
+  dashboard.classList.remove("hidden");
+  dashboard.scrollIntoView({ behavior: "smooth" });
+
+  loadProfile();
+}
+async function updateProfile() {
+  const role = document.getElementById("profile_role").value;
+  const capital = document.getElementById("profile_capital").value;
+  const country = document.getElementById("profile_country").value;
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return alert("Not logged in");
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({
+      role,
+      capital_range: capital,
+      country
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    alert("Update failed");
+    console.error(error);
+  } else {
+    alert("Profile updated successfully");
+  }
+}
+
     await loadUserProfile();
   }
 }
