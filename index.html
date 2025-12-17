@@ -161,14 +161,43 @@ const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+// ===== LOAD USER PROFILE (STEP 4) =====
+async function loadUserProfile() {
+  const { data: authData } = await supabaseClient.auth.getUser();
+
+  if (!authData.user) {
+    console.log("No authenticated user");
+    return;
+  }
+
+  const userId = authData.user.id;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("role, capital_range, country")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    console.error("Profile load error:", error);
+    return;
+  }
+
+  document.getElementById("profile-role").textContent = profile.role;
+  document.getElementById("profile-capital").textContent = profile.capital_range;
+  document.getElementById("profile-country").textContent = profile.country;
+}
 
 // ===== AUTO-LOGIN ON PAGE LOAD =====
 document.addEventListener("DOMContentLoaded", async () => {
   const { data } = await supabaseClient.auth.getSession();
 
-  if (data.session) {
-    console.log("Session found, auto-show dashboard");
-    showDashboard();
+ if (data.session) {
+  console.log("Session found, auto-show dashboard");
+  showDashboard();
+  loadUserProfile();
+}
+
   } else {
     console.log("No session found");
   }
@@ -203,7 +232,9 @@ async function signUp() {
       capital_range: capital,
       country
     });
-    showDashboard();
+ showDashboard();
+loadUserProfile();
+
   }
 }
 
@@ -223,7 +254,11 @@ async function signIn() {
 
   // Now data.session exists — show dashboard
   if (data.session) {
-    showDashboard();
+  if (data.session) {
+  showDashboard();
+  loadUserProfile();
+}
+
   }
 }
 
