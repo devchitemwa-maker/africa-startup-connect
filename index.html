@@ -142,18 +142,31 @@
 <footer class="border-t py-6 text-center text-gray-500">
   ASC — Where Africa Builds Together.
 </footer>
-<script>
-  const SUPABASE_URL = https://unyvcihnjlkanwfrnoop.supabase.co;
-  const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k;
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+  console.log("Supabase script loaded");
+
+  // SUPABASE SETTINGS — make sure these have quotes
+  const SUPABASE_URL = "https://unyvcihnjlkanwfrnoop.supabase.co";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k";
+
+  // Create the Supabase client
   const supabaseClient = supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
 
+  // Debug logging so we can see what loaded
+  console.log("supabaseClient object:", supabaseClient);
+
   async function signUp() {
+    console.log("signUp called");
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    console.log("Email:", email, "Password:", password);
 
     if (!email || !password) {
       alert("Email and password required");
@@ -162,7 +175,7 @@
 
     const { data, error } = await supabaseClient.auth.signUp({
       email,
-      password
+      password,
     });
 
     if (error) {
@@ -170,17 +183,19 @@
       console.error(error);
     } else {
       alert("Signup successful!");
-      console.log(data);
+      console.log("User created:", data);
     }
   }
 
   async function signIn() {
+    console.log("signIn called");
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    console.log("Email:", email, "Password:", password);
 
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email,
-      password
+      password,
     });
 
     if (error) {
@@ -188,10 +203,26 @@
       console.error(error);
     } else {
       alert("Login successful!");
-      console.log(data);
+      console.log("Session data:", data);
     }
   }
+
+  // Set a status message on the page
+  const statusDiv = document.createElement("div");
+  statusDiv.style.position = "fixed";
+  statusDiv.style.bottom = "12px";
+  statusDiv.style.right = "12px";
+  statusDiv.style.padding = "8px 12px";
+  statusDiv.style.background = "#EBF8FF";
+  statusDiv.style.border = "1px solid #3182CE";
+  statusDiv.style.borderRadius = "4px";
+  statusDiv.style.fontSize = "14px";
+  statusDiv.style.color = "#2A4365";
+  statusDiv.textContent = "Supabase Loaded";
+  document.body.appendChild(statusDiv);
 </script>
+
+
 
 
 </body>
