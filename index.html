@@ -135,31 +135,6 @@
   class="border w-full py-3 rounded">
   Log In
 </button>
-function showDashboard() {
-  // Hide signup inputs
-  document.getElementById("email").style.display = "none";
-  document.getElementById("password").style.display = "none";
-
-  // Hide only signup & login buttons
-  document.querySelector('[onclick="signUp()"]').style.display = "none";
-  document.querySelector('[onclick="signIn()"]').style.display = "none";
-
-  // Show dashboard section
-  const dashboard = document.getElementById("dashboard");
-  dashboard.classList.remove("hidden");
-
-  // Scroll to dashboard
-  dashboard.scrollIntoView({ behavior: "smooth" });
-}
-
-async function logout() {
-  await supabaseClient.auth.signOut();
-  location.reload();
-}
-
-   
-
-
 <!-- FOOTER -->
 <footer class="border-t py-6 text-center text-gray-500">
   ASC — Where Africa Builds Together.
@@ -168,111 +143,65 @@ async function logout() {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  console.log("Supabase script loaded");
-
-  // SUPABASE SETTINGS — make sure these have quotes
   const SUPABASE_URL = "https://unyvcihnjlkanwfrnoop.supabase.co";
   const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k";
 
-  // Create the Supabase client
   const supabaseClient = supabase.createClient(
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   );
 
-  // Debug logging so we can see what loaded
-  console.log("supabaseClient object:", supabaseClient);
-
   async function signUp() {
-    console.log("signUp called");
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    console.log("Email:", email, "Password:", password);
 
     if (!email || !password) {
       alert("Email and password required");
       return;
     }
 
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-    });
+    const { error } = await supabaseClient.auth.signUp({ email, password });
 
     if (error) {
-      alert("Signup error: " + error.message);
-      console.error(error);
+      alert(error.message);
     } else {
-      alert("Signup successful!");
-      console.log("User created:", data);
+      showDashboard();
     }
   }
 
   async function signIn() {
-    console.log("signIn called");
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    console.log("Email:", email, "Password:", password);
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
+    const { error } = await supabaseClient.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      alert("Login error: " + error.message);
-      console.error(error);
+      alert(error.message);
     } else {
-      alert("Login successful!");
-      console.log("Session data:", data);
+      showDashboard();
     }
   }
 
-  // Set a status message on the page
-  const statusDiv = document.createElement("div");
-  statusDiv.style.position = "fixed";
-  statusDiv.style.bottom = "12px";
-  statusDiv.style.right = "12px";
-  statusDiv.style.padding = "8px 12px";
-  statusDiv.style.background = "#EBF8FF";
-  statusDiv.style.border = "1px solid #3182CE";
-  statusDiv.style.borderRadius = "4px";
-  statusDiv.style.fontSize = "14px";
-  statusDiv.style.color = "#2A4365";
-  statusDiv.textContent = "Supabase Loaded";
-  document.body.appendChild(statusDiv);
   function showDashboard() {
-  // hide signup area
-  document.getElementById("email").style.display = "none";
-  document.getElementById("password").style.display = "none";
+    document.getElementById("email").style.display = "none";
+    document.getElementById("password").style.display = "none";
 
-  document.querySelectorAll("button").forEach(btn => {
-    btn.style.display = "none";
-  });
+    document.querySelector('[onclick="signUp()"]').style.display = "none";
+    document.querySelector('[onclick="signIn()"]').style.display = "none";
 
-  function showDashboard() {
-  // Hide signup inputs
-  document.getElementById("email").style.display = "none";
-  document.getElementById("password").style.display = "none";
+    document.getElementById("dashboard").classList.remove("hidden");
+    document.getElementById("dashboard").scrollIntoView({ behavior: "smooth" });
+  }
 
-  // Hide ONLY signup/login buttons
-  document.querySelector('[onclick="signUp()"]').style.display = "none";
-  document.querySelector('[onclick="signIn()"]').style.display = "none";
-
-  // Show dashboard
-  const dashboard = document.getElementById("dashboard");
-  dashboard.classList.remove("hidden");
-
-  // Scroll to dashboard
-  dashboard.scrollIntoView({ behavior: "smooth" });
-}
-
-
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  }
 </script>
-
-
-
-
+  
 </body>
 </html>
