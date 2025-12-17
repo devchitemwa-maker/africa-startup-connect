@@ -149,88 +149,100 @@
   ASC — Where Africa Builds Together.
 </footer>
 
-<!-- SUPABASE -->
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  const SUPABASE_URL = "https://unyvcihnjlkanwfrnoop.supabase.co";
-  const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k";
+const SUPABASE_URL = "https://unyvcihnjlkanwfrnoop.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k";
 
-  const supabaseClient = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
-  <script>
-  // 🔐 AUTO-LOGIN ON PAGE LOAD (STEP 3)
-  document.addEventListener("DOMContentLoaded", async () => {
-    const { data } = await supabaseClient.auth.getSession();
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-    if (data.session) {
-      console.log("Session found, auto-login");
-      showDashboard();
-    } else {
-      console.log("No session found");
-    }
+// ===== AUTO-LOGIN ON PAGE LOAD =====
+document.addEventListener("DOMContentLoaded", async () => {
+  const { data } = await supabaseClient.auth.getSession();
+
+  if (data.session) {
+    console.log("Session found, auto-show dashboard");
+    showDashboard();
+  } else {
+    console.log("No session found");
+  }
+});
+
+// ===== SIGNUP =====
+async function signUp() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const role = document.getElementById("role").value;
+  const capital = document.getElementById("capital").value;
+  const country = document.getElementById("country").value;
+
+  if (!email || !password || !role || !capital || !country) {
+    return alert("Please fill all fields");
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
   });
-</script>
 
+  if (error) {
+    return alert("Signup error: " + error.message);
+  }
 
-  async function signUp() {
-    const email = email.value;
-    const password = password.value;
-    const role = document.getElementById("role").value;
-    const capital = document.getElementById("capital").value;
-    const country = document.getElementById("country").value;
-
-    if (!email || !password || !role || !capital || !country) {
-      return alert("Please fill all fields");
-    }
-
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) return alert(error.message);
-
-    const user = data.user;
-
+  const user = data.user;
+  if (user) {
     await supabaseClient.from("profiles").insert({
       id: user.id,
       role,
       capital_range: capital,
       country
     });
-
     showDashboard();
   }
+}
 
-  async function signIn() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+// ===== SIGNIN =====
+async function signIn() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-    if (error) return alert(error.message);
+  if (error) {
+    return alert("Login error: " + error.message);
+  }
 
+  // Now data.session exists — show dashboard
+  if (data.session) {
     showDashboard();
   }
+}
 
-  function showDashboard() {
-    document.getElementById("signup").style.display = "none";
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("dashboard").scrollIntoView({ behavior: "smooth" });
-  }
+// ===== SHOW DASHBOARD =====
+function showDashboard() {
+  document.getElementById("signup").style.display = "none";
+  
+  const dashboard = document.getElementById("dashboard");
+  dashboard.classList.remove("hidden");
+  dashboard.scrollIntoView({ behavior: "smooth" });
+}
 
-  async function logout() {
-    await supabaseClient.auth.signOut();
-    location.reload();
-  }
+// ===== LOGOUT =====
+async function logout() {
+  await supabaseClient.auth.signOut();
+  location.reload();
+}
 </script>
+
 
 </body>
 </html>
