@@ -39,19 +39,14 @@
 
   <input id="country" placeholder="Country" class="border p-3 rounded w-full mb-3" />
 
-  <button id="signupBtn" class="bg-blue-600 text-white w-full py-3 rounded mb-2">
-    Sign Up
-  </button>
-
-  <button id="loginBtn" class="border w-full py-3 rounded">
-    Log In
-  </button>
+  <button id="signupBtn" class="bg-blue-600 text-white w-full py-3 rounded mb-2">Sign Up</button>
+  <button id="loginBtn" class="border w-full py-3 rounded">Log In</button>
 </section>
 
 <!-- DASHBOARD -->
 <section id="dashboard" class="hidden max-w-5xl mx-auto py-16 px-6">
   <h2 class="text-3xl font-bold mb-2">
-    Welcome, <span id="profileName"></span>
+    Welcome, <span id="profileName"></span> 👋
   </h2>
 
   <p class="mb-8 text-gray-600">
@@ -59,6 +54,8 @@
     Capital: <span id="profileCapital"></span> |
     Country: <span id="profileCountry"></span>
   </p>
+
+  <hr class="my-6" />
 
   <div class="bg-white p-6 rounded-xl shadow mb-10">
     <h3 class="text-xl font-bold mb-4">Post a Business Project</h3>
@@ -79,6 +76,9 @@
   </div>
 </section>
 
+<!-- STATUS -->
+<div id="status" class="fixed bottom-4 right-4 hidden px-4 py-2 rounded shadow"></div>
+
 <footer class="border-t py-6 text-center text-gray-500 bg-white">
   ASC — Where Africa Builds Together.
 </footer>
@@ -88,171 +88,57 @@
 <script>
 const supabaseClient = supabase.createClient(
   "https://unyvcihnjlkanwfrnoop.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k",
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: localStorage
-    }
-  }
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
 );
 
-// ---------- AUTH STATE ----------
-supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-  if (session) {
-    showDashboard();
-    await loadProfile();
-    await loadProjects();
-  } else {
-    showAuth();
-  }
+/* ---------- STATUS ---------- */
+function showStatus(msg, error=false) {
+  const s = document.getElementById("status");
+  s.textContent = msg;
+  s.className = "fixed bottom-4 right-4 px-4 py-2 rounded shadow " +
+    (error ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800");
+  s.classList.remove("hidden");
+  setTimeout(() => s.classList.add("hidden"), 3000);
+}
+
+/* ---------- AUTH STATE ---------- */
+supabaseClient.auth.onAuthStateChange((_, session) => {
+  session ? showDashboard() : showAuth();
 });
 
-// ---------- PAGE LOAD ----------
-window.addEventListener("load", async () => {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session) {
-    showDashboard();
-    await loadProfile();
-    await loadProjects();
-  }
-});
-
-async function signUp() {
-  if (!email.value || !password.value) {
-    showStatus("Email and password required", true);
-    return;
-  }
-
-  showStatus("Creating account...");
-
+/* ---------- SIGN UP ---------- */
+signupBtn.onclick = async () => {
   const { data, error } = await supabaseClient.auth.signUp({
     email: email.value,
-    password: password.value,
+    password: password.value
   });
+  if (error) return showStatus(error.message, true);
 
-  if (error) {
-    showStatus(error.message, true);
-    return;
-  }
-
-  const profileRes = await supabaseClient.from("profiles").insert({
+  await supabaseClient.from("profiles").insert({
     id: data.user.id,
     full_name: full_name.value,
     role: role.value,
     capital_range: capital.value,
-    country: country.value,
-  });
-
-  if (profileRes.error) {
-    showStatus("Profile save failed", true);
-    return;
-  }
-
-  showStatus("Account created successfully ✅");
-}
-
+    country: country.value
   });
 };
 
-async function signIn() {
-  if (!email.value || !password.value) {
-    showStatus("Enter email and password", true);
-    return;
-  }
-
-  showStatus("Signing in...");
-
+/* ---------- SIGN IN ---------- */
+loginBtn.onclick = async () => {
   const { error } = await supabaseClient.auth.signInWithPassword({
     email: email.value,
-    password: password.value,
+    password: password.value
   });
-
-  if (error) {
-    showStatus(error.message, true);
-  }
-}
-
+  if (error) showStatus(error.message, true);
 };
 
-// ---------- PROFILE ----------
-async function loadProfile() {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  const { data } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  profileName.textContent = data.full_name;
-  profileRole.textContent = data.role;
-  profileCapital.textContent = data.capital_range;
-  profileCountry.textContent = data.country;
-  <hr class="my-6" />
-
-}
-
-// ---------- PROJECTS ----------
-async function createProject() {
-  if (!project_title.value || !project_description.value) {
-    showStatus("Project title & description required", true);
-    return;
-  }
-
-  showStatus("Posting project...");
-
-  const { data: { user } } = await supabaseClient.auth.getUser();
-
-  const { error } = await supabaseClient.from("projects").insert({
-    owner_id: user.id,
-    title: project_title.value,
-    description: project_description.value,
-    capital_needed: project_capital.value,
-  });
-
-  if (error) {
-    showStatus(error.message, true);
-    return;
-  }
-
-  project_title.value = "";
-  project_description.value = "";
-  project_capital.value = "";
-
-  showStatus("Project posted successfully 🚀");
-  loadProjects();
-}
-
-};
-
-async function loadProjects() {
-  const { data } = await supabaseClient
-    .from("projects")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  projectList.innerHTML = "";
-  data.forEach(p => {
-    projectList.innerHTML += `
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h4 class="font-bold">${p.title}</h4>
-        <p>${p.description}</p>
-        <p class="font-semibold mt-2">${p.capital_needed}</p>
-      </div>`;
-    <h2 class="text-3xl font-bold mb-1">
-  Welcome, <span id="profile-name"></span> 👋
-</h2>
-
-  });
-}
-
-// ---------- UI ----------
-function showDashboard() {
+/* ---------- DASHBOARD ---------- */
+async function showDashboard() {
   auth.classList.add("hidden");
   dashboard.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
+  loadProfile();
+  loadProjects();
 }
 
 function showAuth() {
@@ -261,28 +147,48 @@ function showAuth() {
   logoutBtn.classList.add("hidden");
 }
 
+/* ---------- PROFILE ---------- */
+async function loadProfile() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { data } = await supabaseClient.from("profiles").select("*").eq("id", user.id).single();
+
+  profileName.textContent = data.full_name;
+  profileRole.textContent = data.role;
+  profileCapital.textContent = data.capital_range;
+  profileCountry.textContent = data.country;
+}
+
+/* ---------- PROJECTS ---------- */
+postProjectBtn.onclick = async () => {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error } = await supabaseClient.from("projects").insert({
+    owner_id: user.id,
+    title: projectTitle.value,
+    description: projectDescription.value,
+    capital_needed: projectCapital.value
+  });
+  if (error) return showStatus(error.message, true);
+  loadProjects();
+};
+
+async function loadProjects() {
+  const { data } = await supabaseClient.from("projects").select("*").order("created_at", { ascending: false });
+  projectList.innerHTML = "";
+  data.forEach(p => {
+    projectList.innerHTML += `
+      <div class="bg-white p-6 rounded-xl shadow">
+        <h4 class="font-bold">${p.title}</h4>
+        <p>${p.description}</p>
+        <p class="font-semibold mt-2">${p.capital_needed}</p>
+      </div>`;
+  });
+}
+
+/* ---------- LOGOUT ---------- */
 logoutBtn.onclick = async () => {
   await supabaseClient.auth.signOut();
 };
-  function showStatus(message, isError = false) {
-  const el = document.getElementById("status");
-  el.textContent = message;
-  el.classList.remove("hidden");
-
-  el.className =
-    "fixed bottom-4 right-4 px-4 py-2 rounded shadow " +
-    (isError
-      ? "bg-red-100 border border-red-400 text-red-800"
-      : "bg-blue-100 border border-blue-400 text-blue-800");
-
-  setTimeout(() => el.classList.add("hidden"), 3000);
-}
-
 </script>
-  
-<div id="status"
-  class="fixed bottom-4 right-4 hidden bg-blue-100 border border-blue-400 text-blue-800 px-4 py-2 rounded shadow">
-</div>
 
 </body>
 </html>
