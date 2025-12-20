@@ -9,13 +9,10 @@
 
 <body class="bg-gray-50 text-gray-800">
 
-<!-- HEADER -->
 <header class="border-b bg-white">
   <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">Africa Startup Connect</h1>
-    <button id="logoutBtn" class="hidden border px-4 py-2 rounded" onclick="logout()">
-      Log Out
-    </button>
+    <button id="logoutBtn" class="hidden border px-4 py-2 rounded">Log Out</button>
   </div>
 </header>
 
@@ -42,11 +39,11 @@
 
   <input id="country" placeholder="Country" class="border p-3 rounded w-full mb-3" />
 
-  <button class="bg-blue-600 text-white w-full py-3 rounded mb-2" onclick="signUp()">
+  <button id="signupBtn" class="bg-blue-600 text-white w-full py-3 rounded mb-2">
     Sign Up
   </button>
 
-  <button class="border w-full py-3 rounded" onclick="signIn()">
+  <button id="loginBtn" class="border w-full py-3 rounded">
     Log In
   </button>
 </section>
@@ -54,33 +51,31 @@
 <!-- DASHBOARD -->
 <section id="dashboard" class="hidden max-w-5xl mx-auto py-16 px-6">
   <h2 class="text-3xl font-bold mb-2">
-    Welcome, <span id="profile-name"></span>
+    Welcome, <span id="profileName"></span>
   </h2>
 
   <p class="mb-8 text-gray-600">
-    Role: <span id="profile-role"></span> |
-    Capital: <span id="profile-capital"></span> |
-    Country: <span id="profile-country"></span>
+    Role: <span id="profileRole"></span> |
+    Capital: <span id="profileCapital"></span> |
+    Country: <span id="profileCountry"></span>
   </p>
 
-  <!-- PROJECT CREATE -->
   <div class="bg-white p-6 rounded-xl shadow mb-10">
     <h3 class="text-xl font-bold mb-4">Post a Business Project</h3>
 
-    <input id="project_title" placeholder="Project Title" class="border p-3 rounded w-full mb-3" />
-    <textarea id="project_description" placeholder="Describe your business idea"
+    <input id="projectTitle" placeholder="Project Title" class="border p-3 rounded w-full mb-3" />
+    <textarea id="projectDescription" placeholder="Describe your business idea"
       class="border p-3 rounded w-full mb-3"></textarea>
-    <input id="project_capital" placeholder="Capital Needed" class="border p-3 rounded w-full mb-3" />
+    <input id="projectCapital" placeholder="Capital Needed" class="border p-3 rounded w-full mb-3" />
 
-    <button class="bg-blue-600 text-white px-6 py-3 rounded" onclick="createProject()">
+    <button id="postProjectBtn" class="bg-blue-600 text-white px-6 py-3 rounded">
       Post Project
     </button>
   </div>
 
-  <!-- PROJECT LIST -->
   <div>
     <h3 class="text-2xl font-bold mb-4">All Projects</h3>
-    <div id="project-list" class="grid md:grid-cols-2 gap-6"></div>
+    <div id="projectList" class="grid md:grid-cols-2 gap-6"></div>
   </div>
 </section>
 
@@ -104,11 +99,7 @@ const supabaseClient = supabase.createClient(
   }
 );
 
-);
-
-/* =======================
-   AUTH STATE (FIXED)
-======================= */
+// ---------- AUTH STATE ----------
 supabaseClient.auth.onAuthStateChange(async (_event, session) => {
   if (session) {
     showDashboard();
@@ -119,20 +110,22 @@ supabaseClient.auth.onAuthStateChange(async (_event, session) => {
   }
 });
 
-/* =======================
-   SIGN UP
-======================= */
-async function signUp() {
-  if (!email.value || !password.value) {
-    alert("Email and password required");
-    return;
+// ---------- PAGE LOAD ----------
+window.addEventListener("load", async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    showDashboard();
+    await loadProfile();
+    await loadProjects();
   }
+});
 
+// ---------- SIGN UP ----------
+signupBtn.onclick = async () => {
   const { data, error } = await supabaseClient.auth.signUp({
     email: email.value,
     password: password.value,
   });
-
   if (error) return alert(error.message);
 
   await supabaseClient.from("profiles").insert({
@@ -142,23 +135,18 @@ async function signUp() {
     capital_range: capital.value,
     country: country.value,
   });
-}
+};
 
-/* =======================
-   SIGN IN
-======================= */
-async function signIn() {
+// ---------- SIGN IN ----------
+loginBtn.onclick = async () => {
   const { error } = await supabaseClient.auth.signInWithPassword({
     email: email.value,
     password: password.value,
   });
-
   if (error) alert(error.message);
-}
+};
 
-/* =======================
-   PROFILE
-======================= */
+// ---------- PROFILE ----------
 async function loadProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
   const { data } = await supabaseClient
@@ -167,28 +155,31 @@ async function loadProfile() {
     .eq("id", user.id)
     .single();
 
-  profile-name.textContent = data.full_name;
-  profile-role.textContent = data.role;
-  profile-capital.textContent = data.capital_range;
-  profile-country.textContent = data.country;
+  profileName.textContent = data.full_name;
+  profileRole.textContent = data.role;
+  profileCapital.textContent = data.capital_range;
+  profileCountry.textContent = data.country;
 }
 
-/* =======================
-   PROJECTS
-======================= */
-async function createProject() {
+// ---------- PROJECTS ----------
+postProjectBtn.onclick = async () => {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return alert("Not logged in");
 
   const { error } = await supabaseClient.from("projects").insert({
     owner_id: user.id,
-    title: project_title.value,
-    description: project_description.value,
-    capital_needed: project_capital.value,
+    title: projectTitle.value,
+    description: projectDescription.value,
+    capital_needed: projectCapital.value,
   });
 
   if (error) return alert(error.message);
+
+  projectTitle.value = "";
+  projectDescription.value = "";
+  projectCapital.value = "";
   loadProjects();
-}
+};
 
 async function loadProjects() {
   const { data } = await supabaseClient
@@ -196,9 +187,9 @@ async function loadProjects() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  project-list.innerHTML = "";
+  projectList.innerHTML = "";
   data.forEach(p => {
-    project-list.innerHTML += `
+    projectList.innerHTML += `
       <div class="bg-white p-6 rounded-xl shadow">
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
@@ -207,9 +198,7 @@ async function loadProjects() {
   });
 }
 
-/* =======================
-   UI
-======================= */
+// ---------- UI ----------
 function showDashboard() {
   auth.classList.add("hidden");
   dashboard.classList.remove("hidden");
@@ -222,12 +211,9 @@ function showAuth() {
   logoutBtn.classList.add("hidden");
 }
 
-/* =======================
-   LOGOUT
-======================= */
-async function logout() {
+logoutBtn.onclick = async () => {
   await supabaseClient.auth.signOut();
-}
+};
 </script>
 
 </body>
