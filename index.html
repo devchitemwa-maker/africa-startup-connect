@@ -74,7 +74,7 @@
 
   <!-- PARTNER -->
   <div id="partnerSection" class="hidden">
-    <h3 class="text-2xl font-bold mb-4">Available Projects</h3>
+    <h3 class="text-2xl font-bold mb-4">Projects You Can Join</h3>
     <div id="partnerProjects" class="grid md:grid-cols-2 gap-6"></div>
   </div>
 
@@ -103,7 +103,7 @@ function showStatus(msg, error=false) {
 }
 
 /* ================= AUTH STATE ================= */
-supabaseClient.auth.onAuthStateChange((_, session) => {
+supabaseClient.auth.onAuthStateChange((_event, session) => {
   session ? showDashboard() : showAuth();
 });
 
@@ -113,6 +113,7 @@ signupBtn.onclick = async () => {
     email: email.value,
     password: password.value
   });
+
   if (error) return showStatus(error.message, true);
 
   await supabaseClient.from("profiles").insert({
@@ -130,6 +131,7 @@ loginBtn.onclick = async () => {
     email: email.value,
     password: password.value
   });
+
   if (error) showStatus(error.message, true);
 };
 
@@ -150,6 +152,8 @@ function showAuth() {
 /* ================= PROFILE ================= */
 async function loadProfile() {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
   const { data } = await supabaseClient
     .from("profiles")
     .select("*")
@@ -175,11 +179,11 @@ async function loadProfile() {
 
   if (data.role === "partner") {
     partnerSection.classList.remove("hidden");
-    loadAllProjectsForPartner();
+    loadProjectsForPartner();
   }
 }
 
-/* ================= PROJECTS ================= */
+/* ================= ENTREPRENEUR ================= */
 postProjectBtn.onclick = async () => {
   const { data: { user } } = await supabaseClient.auth.getUser();
 
@@ -189,6 +193,10 @@ postProjectBtn.onclick = async () => {
     description: projectDescription.value,
     capital_needed: projectCapital.value
   });
+
+  projectTitle.value = "";
+  projectDescription.value = "";
+  projectCapital.value = "";
 
   loadMyProjects(user.id);
 };
@@ -212,6 +220,7 @@ async function loadMyProjects(userId) {
   });
 }
 
+/* ================= INVESTOR ================= */
 async function loadAllProjects() {
   const { data } = await supabaseClient.from("projects").select("*");
 
@@ -224,7 +233,7 @@ async function loadAllProjects() {
         <p>${p.description}</p>
         <p class="mt-2 font-semibold">${p.capital_needed}</p>
 
-        <button onclick="expressInterest('${p.id}')"
+        <button onclick="invest('${p.id}')"
           class="mt-3 bg-green-600 text-white px-4 py-2 rounded">
           Invest
         </button>
@@ -233,8 +242,21 @@ async function loadAllProjects() {
   });
 }
 
+async function invest(projectId) {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  await supabaseClient.from("project_interests").insert({
+    project_id: projectId,
+    user_id: user.id,
+    role: "investor",
+    status: "pending"
+  });
+
+  showStatus("Investment interest sent");
+}
+
 /* ================= PARTNER ================= */
-async function loadAllProjectsForPartner() {
+async function loadProjectsForPartner() {
   const { data } = await supabaseClient.from("projects").select("*");
 
   partnerProjects.innerHTML = "";
@@ -245,9 +267,13 @@ async function loadAllProjectsForPartner() {
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
 
+        <input id="skills-${p.id}"
+          placeholder="Your skills (e.g. Developer, Marketing)"
+          class="border p-2 rounded w-full mt-3" />
+
         <button onclick="joinAsPartner('${p.id}')"
-          class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">
-          Join with Skills
+          class="mt-3 bg-blue-600 text-white px-4 py-2 rounded w-full">
+          Join as Partner
         </button>
       </div>
     `;
@@ -256,27 +282,22 @@ async function loadAllProjectsForPartner() {
 
 async function joinAsPartner(projectId) {
   const { data: { user } } = await supabaseClient.auth.getUser();
+  const skills = document.getElementById(`skills-${projectId}`).value.trim();
+
+  if (!skills) {
+    showStatus("Please enter your skills", true);
+    return;
+  }
 
   await supabaseClient.from("project_interests").insert({
     project_id: projectId,
     user_id: user.id,
-    status: "partner"
+    role: "partner",
+    skills: skills,
+    status: "pending"
   });
 
-  showStatus("Joined project as partner");
-}
-
-/* ================= INVESTOR ================= */
-async function expressInterest(projectId) {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-
-  await supabaseClient.from("project_interests").insert({
-    project_id: projectId,
-    user_id: user.id,
-    status: "investor"
-  });
-
-  showStatus("Investment interest sent");
+  showStatus("Joined project as partner 🚀");
 }
 
 /* ================= LOGOUT ================= */
@@ -287,6 +308,7 @@ logoutBtn.onclick = async () => {
 
 </body>
 </html>
+
 
 
 
