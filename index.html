@@ -9,7 +9,6 @@
 
 <body class="bg-gray-50 text-gray-800">
 
-<!-- HEADER -->
 <header class="border-b bg-white">
   <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-blue-600">Africa Startup Connect</h1>
@@ -42,10 +41,7 @@
   <h2 class="text-3xl font-bold mb-2">
     Welcome, <span id="profileName"></span> 👋
   </h2>
-
-  <p class="mb-8 text-gray-600">
-    Role: <span id="profileRole"></span>
-  </p>
+  <p class="mb-8 text-gray-600">Role: <span id="profileRole"></span></p>
 
   <!-- ENTREPRENEUR -->
   <div id="entrepreneurSection" class="hidden">
@@ -55,14 +51,8 @@
       <input id="projectTitle" placeholder="Project Title" class="border p-3 rounded w-full mb-3" />
       <textarea id="projectDescription" placeholder="Description" class="border p-3 rounded w-full mb-3"></textarea>
       <input id="projectCapital" placeholder="Capital Needed" class="border p-3 rounded w-full mb-3" />
-
-      <!-- PITCH DECK -->
-      <input id="pitchDeck" type="file" accept=".pdf,.ppt,.pptx,.doc,.docx"
-        class="border p-3 rounded w-full mb-3" />
-
-      <button id="postProjectBtn" class="bg-blue-600 text-white px-6 py-3 rounded">
-        Post Project
-      </button>
+      <input type="file" id="pitchFile" class="mb-3" />
+      <button id="postProjectBtn" class="bg-blue-600 text-white px-6 py-3 rounded">Post Project</button>
     </div>
 
     <div id="myProjects" class="grid md:grid-cols-2 gap-6"></div>
@@ -79,8 +69,20 @@
     <h3 class="text-2xl font-bold mb-4">Projects You Can Join</h3>
     <div id="partnerProjects" class="grid md:grid-cols-2 gap-6"></div>
   </div>
-
 </section>
+
+<!-- CHAT MODAL -->
+<div id="chatModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+  <div class="bg-white w-full max-w-lg rounded-xl p-4">
+    <h3 class="font-bold text-lg mb-2">Project Chat</h3>
+    <div id="chatMessages" class="h-64 overflow-y-auto border p-3 rounded mb-3"></div>
+    <div class="flex gap-2">
+      <input id="chatInput" class="border p-2 rounded w-full" placeholder="Type message..." />
+      <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 rounded">Send</button>
+    </div>
+    <button onclick="closeChat()" class="mt-3 text-sm text-gray-500">Close</button>
+  </div>
+</div>
 
 <div id="status" class="fixed bottom-4 right-4 hidden px-4 py-2 rounded shadow"></div>
 
@@ -94,67 +96,57 @@ const supabaseClient = supabase.createClient(
 );
 
 /* ================= STATUS ================= */
-function showStatus(msg, error=false) {
-  const s = document.getElementById("status");
-  s.textContent = msg;
-  s.className =
-    "fixed bottom-4 right-4 px-4 py-2 rounded shadow " +
+function showStatus(msg, error=false){
+  status.textContent = msg;
+  status.className = "fixed bottom-4 right-4 px-4 py-2 rounded shadow " +
     (error ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800");
-  s.classList.remove("hidden");
-  setTimeout(() => s.classList.add("hidden"), 3000);
+  status.classList.remove("hidden");
+  setTimeout(()=>status.classList.add("hidden"),3000);
 }
 
 /* ================= AUTH ================= */
-supabaseClient.auth.onAuthStateChange((_, session) => {
+supabaseClient.auth.onAuthStateChange((_,session)=>{
   session ? showDashboard() : showAuth();
 });
 
-signupBtn.onclick = async () => {
-  const { data, error } = await supabaseClient.auth.signUp({
-    email: email.value,
-    password: password.value
+signupBtn.onclick = async ()=>{
+  const {data,error} = await supabaseClient.auth.signUp({
+    email:email.value,password:password.value
   });
-  if (error) return showStatus(error.message, true);
-
+  if(error) return showStatus(error.message,true);
   await supabaseClient.from("profiles").insert({
-    id: data.user.id,
-    full_name: full_name.value,
-    role: role.value
+    id:data.user.id,full_name:full_name.value,role:role.value
   });
-
-  showStatus("Account created");
 };
 
-loginBtn.onclick = async () => {
-  const { error } = await supabaseClient.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
+loginBtn.onclick = async ()=>{
+  const {error} = await supabaseClient.auth.signInWithPassword({
+    email:email.value,password:password.value
   });
-  if (error) showStatus(error.message, true);
+  if(error) showStatus(error.message,true);
 };
 
-logoutBtn.onclick = async () => {
+logoutBtn.onclick = async ()=>{
   await supabaseClient.auth.signOut();
 };
 
 /* ================= UI ================= */
-function showDashboard() {
+function showDashboard(){
   auth.classList.add("hidden");
   dashboard.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
   loadProfile();
 }
-
-function showAuth() {
+function showAuth(){
   auth.classList.remove("hidden");
   dashboard.classList.add("hidden");
   logoutBtn.classList.add("hidden");
 }
 
 /* ================= PROFILE ================= */
-async function loadProfile() {
-  const { data:{user} } = await supabaseClient.auth.getUser();
-  const { data } = await supabaseClient.from("profiles").select("*").eq("id", user.id).single();
+async function loadProfile(){
+  const {data:{user}} = await supabaseClient.auth.getUser();
+  const {data} = await supabaseClient.from("profiles").select("*").eq("id",user.id).single();
 
   profileName.textContent = data.full_name;
   profileRole.textContent = data.role;
@@ -163,113 +155,120 @@ async function loadProfile() {
   investorSection.classList.add("hidden");
   partnerSection.classList.add("hidden");
 
-  if (data.role === "entrepreneur") {
-    entrepreneurSection.classList.remove("hidden");
-    loadMyProjects(user.id);
-  }
-  if (data.role === "investor") {
-    investorSection.classList.remove("hidden");
-    loadAllProjects();
-  }
-  if (data.role === "partner") {
-    partnerSection.classList.remove("hidden");
-    loadProjectsForPartner();
-  }
+  if(data.role==="entrepreneur"){ entrepreneurSection.classList.remove("hidden"); loadMyProjects(user.id); }
+  if(data.role==="investor"){ investorSection.classList.remove("hidden"); loadAllProjects(); }
+  if(data.role==="partner"){ partnerSection.classList.remove("hidden"); loadPartnerProjects(); }
 }
 
-/* ================= POST PROJECT + PITCH ================= */
-postProjectBtn.onclick = async () => {
-  const { data:{user} } = await supabaseClient.auth.getUser();
-  let pitchUrl = null;
+/* ================= PROJECTS ================= */
+postProjectBtn.onclick = async ()=>{
+  const {data:{user}} = await supabaseClient.auth.getUser();
 
-  const file = pitchDeck.files[0];
-  if (file) {
-    const path = `${user.id}/${Date.now()}-${file.name}`;
-    await supabaseClient.storage.from("pitch-decks").upload(path, file);
-    pitchUrl = supabaseClient.storage.from("pitch-decks").getPublicUrl(path).data.publicUrl;
+  let pitchUrl = null;
+  if(pitchFile.files[0]){
+    const file = pitchFile.files[0];
+    const path = `${user.id}/${Date.now()}_${file.name}`;
+    await supabaseClient.storage.from("pitch-decks").upload(path,file);
+    pitchUrl = path;
   }
 
   await supabaseClient.from("projects").insert({
-    owner_id: user.id,
-    title: projectTitle.value,
-    description: projectDescription.value,
-    capital_needed: projectCapital.value,
-    pitch_deck_url: pitchUrl
+    owner_id:user.id,
+    title:projectTitle.value,
+    description:projectDescription.value,
+    capital_needed:projectCapital.value,
+    pitch_deck:pitchUrl
   });
 
-  showStatus("Project created 🚀");
   loadMyProjects(user.id);
 };
 
-/* ================= ENTREPRENEUR ================= */
-async function loadMyProjects(userId) {
-  const { data } = await supabaseClient.from("projects").select("*").eq("owner_id", userId);
-  myProjects.innerHTML = "";
-
-  data.forEach(p => {
-    myProjects.innerHTML += `
-      <div class="bg-white p-6 rounded-xl shadow">
+async function loadMyProjects(userId){
+  const {data} = await supabaseClient.from("projects").select("*").eq("owner_id",userId);
+  myProjects.innerHTML="";
+  data.forEach(p=>{
+    myProjects.innerHTML+=`
+      <div class="bg-white p-5 rounded shadow">
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
-        ${p.pitch_deck_url ? `<a href="${p.pitch_deck_url}" target="_blank" class="text-blue-600 underline">View Pitch Deck</a>` : ""}
+        <button onclick="openChat('${p.id}')" class="mt-3 border px-3 py-1 rounded">Open Chat</button>
       </div>`;
   });
 }
 
-/* ================= INVESTOR ================= */
-async function loadAllProjects() {
-  const { data } = await supabaseClient.from("projects").select("*");
-  projectList.innerHTML = "";
-
-  data.forEach(p => {
-    projectList.innerHTML += `
-      <div class="bg-white p-6 rounded-xl shadow">
+async function loadAllProjects(){
+  const {data} = await supabaseClient.from("projects").select("*");
+  projectList.innerHTML="";
+  data.forEach(p=>{
+    projectList.innerHTML+=`
+      <div class="bg-white p-5 rounded shadow">
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
-        ${p.pitch_deck_url ? `<a href="${p.pitch_deck_url}" target="_blank" class="text-blue-600 underline">View Pitch Deck</a>` : ""}
-        <button onclick="invest('${p.id}')" class="mt-3 bg-green-600 text-white px-4 py-2 rounded">Invest</button>
+        <button onclick="expressInterest('${p.id}')" class="mt-3 bg-green-600 text-white px-3 py-1 rounded">Invest</button>
+        <button onclick="openChat('${p.id}')" class="mt-2 border px-3 py-1 rounded">Chat</button>
       </div>`;
   });
 }
 
-async function invest(projectId) {
-  const { data:{user} } = await supabaseClient.auth.getUser();
+async function loadPartnerProjects(){
+  const {data} = await supabaseClient.from("projects").select("*");
+  partnerProjects.innerHTML="";
+  data.forEach(p=>{
+    partnerProjects.innerHTML+=`
+      <div class="bg-white p-5 rounded shadow">
+        <h4 class="font-bold">${p.title}</h4>
+        <input id="skills-${p.id}" class="border p-2 w-full mt-2" placeholder="Your skills" />
+        <button onclick="joinAsPartner('${p.id}')" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded">Join</button>
+        <button onclick="openChat('${p.id}')" class="mt-2 border px-3 py-1 rounded">Chat</button>
+      </div>`;
+  });
+}
+
+/* ================= INTEREST ================= */
+async function expressInterest(projectId){
+  const {data:{user}} = await supabaseClient.auth.getUser();
   await supabaseClient.from("project_interests").insert({
-    project_id: projectId,
-    user_id: user.id,
-    role: "investor",
-    status: "pending"
+    project_id:projectId,user_id:user.id,role:"investor",status:"pending"
   });
-  showStatus("Investment interest sent");
+  showStatus("Interest sent");
 }
 
-/* ================= PARTNER ================= */
-async function loadProjectsForPartner() {
-  const { data } = await supabaseClient.from("projects").select("*");
-  partnerProjects.innerHTML = "";
-
-  data.forEach(p => {
-    partnerProjects.innerHTML += `
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h4 class="font-bold">${p.title}</h4>
-        <p>${p.description}</p>
-        <input id="skills-${p.id}" class="border p-2 rounded w-full mt-2" placeholder="Your skills" />
-        <button onclick="joinAsPartner('${p.id}')" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">Join</button>
-      </div>`;
-  });
-}
-
-async function joinAsPartner(projectId) {
-  const { data:{user} } = await supabaseClient.auth.getUser();
+async function joinAsPartner(projectId){
+  const {data:{user}} = await supabaseClient.auth.getUser();
   const skills = document.getElementById("skills-"+projectId).value;
   await supabaseClient.from("project_interests").insert({
-    project_id: projectId,
-    user_id: user.id,
-    role: "partner",
-    skills,
-    status: "pending"
+    project_id:projectId,user_id:user.id,role:"partner",skills:skills,status:"pending"
   });
   showStatus("Joined as partner");
+}
+
+/* ================= CHAT ================= */
+let currentProjectChat=null;
+
+function openChat(id){
+  currentProjectChat=id;
+  chatModal.classList.remove("hidden");
+  loadMessages();
+}
+function closeChat(){
+  chatModal.classList.add("hidden");
+}
+async function loadMessages(){
+  const {data} = await supabaseClient.from("project_messages")
+    .select("message,profiles(full_name)")
+    .eq("project_id",currentProjectChat);
+  chatMessages.innerHTML="";
+  data.forEach(m=>{
+    chatMessages.innerHTML+=`<p><b>${m.profiles.full_name}:</b> ${m.message}</p>`;
+  });
+}
+async function sendMessage(){
+  const {data:{user}} = await supabaseClient.auth.getUser();
+  await supabaseClient.from("project_messages").insert({
+    project_id:currentProjectChat,user_id:user.id,message:chatInput.value
+  });
+  chatInput.value="";
+  loadMessages();
 }
 </script>
 
