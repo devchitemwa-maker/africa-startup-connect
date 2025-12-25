@@ -44,56 +44,45 @@
   </h2>
   <p class="mb-8 text-gray-600">Role: <span id="profileRole"></span></p>
 
-  <!-- ADMIN -->
-  <div id="adminSection" class="hidden mb-10">
-    <h3 class="text-2xl font-bold mb-4">Admin Dashboard</h3>
-    <div class="grid md:grid-cols-3 gap-4 mb-6">
-      <div class="bg-white p-4 rounded shadow">
-        <p>Users</p><p id="adminUsers" class="text-xl font-bold">0</p>
-      </div>
-      <div class="bg-white p-4 rounded shadow">
-        <p>Projects</p><p id="adminProjects" class="text-xl font-bold">0</p>
-      </div>
-      <div class="bg-white p-4 rounded shadow">
-        <p>Pending Requests</p><p id="adminRequests" class="text-xl font-bold">0</p>
-      </div>
-    </div>
-  </div>
-
   <!-- ENTREPRENEUR -->
   <div id="entrepreneurSection" class="hidden">
-    <h3 class="text-xl font-bold mb-3">Post Project</h3>
-    <input id="projectTitle" placeholder="Title" class="border p-2 w-full mb-2" />
-    <textarea id="projectDescription" placeholder="Description" class="border p-2 w-full mb-2"></textarea>
-    <input id="projectCapital" placeholder="Capital Needed" class="border p-2 w-full mb-2" />
-    <input type="file" id="pitchFile" class="mb-3" />
-    <button id="postProjectBtn" class="bg-blue-600 text-white px-4 py-2 rounded">Post</button>
+    <h3 class="text-2xl font-bold mb-4">My Projects</h3>
 
-    <div id="myProjects" class="grid md:grid-cols-2 gap-4 mt-6"></div>
+    <div class="bg-white p-6 rounded-xl shadow mb-6">
+      <input id="projectTitle" placeholder="Project Title" class="border p-3 rounded w-full mb-3" />
+      <textarea id="projectDescription" placeholder="Description" class="border p-3 rounded w-full mb-3"></textarea>
+      <input id="projectCapital" placeholder="Capital Needed" class="border p-3 rounded w-full mb-3" />
+      <input type="file" id="pitchFile" class="mb-3" />
+      <button id="postProjectBtn" class="bg-blue-600 text-white px-6 py-3 rounded">Post Project</button>
+    </div>
+
+    <div id="myProjects" class="grid md:grid-cols-2 gap-6"></div>
   </div>
 
   <!-- INVESTOR -->
   <div id="investorSection" class="hidden">
-    <h3 class="text-xl font-bold mb-3">Available Projects</h3>
-    <div id="projectList" class="grid md:grid-cols-2 gap-4"></div>
+    <h3 class="text-2xl font-bold mb-4">Available Projects</h3>
+    <div id="projectList" class="grid md:grid-cols-2 gap-6"></div>
   </div>
 
   <!-- PARTNER -->
   <div id="partnerSection" class="hidden">
-    <h3 class="text-xl font-bold mb-3">Join Projects</h3>
-    <div id="partnerProjects" class="grid md:grid-cols-2 gap-4"></div>
+    <h3 class="text-2xl font-bold mb-4">Projects You Can Join</h3>
+    <div id="partnerProjects" class="grid md:grid-cols-2 gap-6"></div>
   </div>
 
 </section>
 
 <!-- CHAT -->
 <div id="chatModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-  <div class="bg-white p-4 rounded w-full max-w-md">
+  <div class="bg-white w-full max-w-lg rounded-xl p-4">
     <h3 class="font-bold mb-2">Project Chat</h3>
-    <div id="chatMessages" class="h-48 overflow-y-auto border p-2 mb-2"></div>
-    <input id="chatInput" class="border p-2 w-full mb-2" placeholder="Message..." />
-    <button onclick="sendMessage()" class="bg-blue-600 text-white px-3 py-1 rounded">Send</button>
-    <button onclick="closeChat()" class="text-sm text-gray-500 block mt-2">Close</button>
+    <div id="chatMessages" class="h-64 overflow-y-auto border p-3 rounded mb-3"></div>
+    <div class="flex gap-2">
+      <input id="chatInput" class="border p-2 rounded w-full" placeholder="Message..." />
+      <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 rounded">Send</button>
+    </div>
+    <button onclick="closeChat()" class="mt-3 text-sm text-gray-500">Close</button>
   </div>
 </div>
 
@@ -102,15 +91,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-/* ================= SUPABASE ================= */
-const supabaseClient = supabase.createClient(
-  "https://unyvcihnjlkanwfrnoop.supabase.co
-",
- "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
+/* ================= CONFIG ================= */
+const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
+;
 
-);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ================= STATUS ================= */
+/* ================= UTIL ================= */
 function showStatus(msg, error=false){
   status.textContent = msg;
   status.className =
@@ -120,14 +108,24 @@ function showStatus(msg, error=false){
   setTimeout(()=>status.classList.add("hidden"),3000);
 }
 
-/* ================= AUTH ================= */
-supabaseClient.auth.onAuthStateChange((_,session)=>{
-  session ? showDashboard() : showAuth();
+function hideAllRoles(){
+  entrepreneurSection.classList.add("hidden");
+  investorSection.classList.add("hidden");
+  partnerSection.classList.add("hidden");
+}
+
+/* ================= AUTH STATE ================= */
+supabaseClient.auth.onAuthStateChange(async (_event, session)=>{
+  if(!session){ showAuth(); return; }
+  showDashboard();
+  await loadProfileAndRoute();
 });
 
+/* ================= AUTH ================= */
 signupBtn.onclick = async ()=>{
-  const {data,error} = await supabaseClient.auth.signUp({
-    email:email.value,password:password.value
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email.value,
+    password: password.value
   });
   if(error) return showStatus(error.message,true);
 
@@ -136,11 +134,14 @@ signupBtn.onclick = async ()=>{
     full_name:full_name.value,
     role:role.value
   });
+
+  showStatus("Account created");
 };
 
 loginBtn.onclick = async ()=>{
-  const {error} = await supabaseClient.auth.signInWithPassword({
-    email:email.value,password:password.value
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email:email.value,
+    password:password.value
   });
   if(error) showStatus(error.message,true);
 };
@@ -154,7 +155,6 @@ function showDashboard(){
   auth.classList.add("hidden");
   dashboard.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  loadProfile();
 }
 function showAuth(){
   auth.classList.remove("hidden");
@@ -163,33 +163,39 @@ function showAuth(){
 }
 
 /* ================= PROFILE ================= */
-async function loadProfile(){
-  const {data:{user}} = await supabaseClient.auth.getUser();
-  const {data} = await supabaseClient.from("profiles").select("*").eq("id",user.id).single();
+async function loadProfileAndRoute(){
+  const { data:{user} } = await supabaseClient.auth.getUser();
+  const { data:profile } = await supabaseClient
+    .from("profiles").select("*").eq("id",user.id).single();
 
-  profileName.textContent = data.full_name;
-  profileRole.textContent = data.role;
+  profileName.textContent = profile.full_name;
+  profileRole.textContent = profile.role;
 
-  entrepreneurSection.classList.add("hidden");
-  investorSection.classList.add("hidden");
-  partnerSection.classList.add("hidden");
-  adminSection.classList.add("hidden");
+  hideAllRoles();
 
-  if(data.role==="entrepreneur"){ entrepreneurSection.classList.remove("hidden"); loadMyProjects(user.id); }
-  if(data.role==="investor"){ investorSection.classList.remove("hidden"); loadAllProjects(); }
-  if(data.role==="partner"){ partnerSection.classList.remove("hidden"); loadPartnerProjects(); }
-  if(data.is_admin){ adminSection.classList.remove("hidden"); }
+  if(profile.role==="entrepreneur"){
+    entrepreneurSection.classList.remove("hidden");
+    loadMyProjects(user.id);
+  }
+  if(profile.role==="investor"){
+    investorSection.classList.remove("hidden");
+    loadAllProjects();
+  }
+  if(profile.role==="partner"){
+    partnerSection.classList.remove("hidden");
+    loadPartnerProjects();
+  }
 }
 
 /* ================= PROJECTS ================= */
 postProjectBtn.onclick = async ()=>{
-  const {data:{user}} = await supabaseClient.auth.getUser();
-  let pitchPath=null;
+  const { data:{user} } = await supabaseClient.auth.getUser();
 
+  let pitchPath=null;
   if(pitchFile.files[0]){
-    const f=pitchFile.files[0];
-    pitchPath=`${user.id}/${Date.now()}_${f.name}`;
-    await supabaseClient.storage.from("pitch-decks").upload(pitchPath,f);
+    const file=pitchFile.files[0];
+    pitchPath=`${user.id}/${Date.now()}_${file.name}`;
+    await supabaseClient.storage.from("pitch-decks").upload(pitchPath,file);
   }
 
   await supabaseClient.from("projects").insert({
@@ -203,84 +209,98 @@ postProjectBtn.onclick = async ()=>{
   loadMyProjects(user.id);
 };
 
-async function loadMyProjects(uid){
-  const {data} = await supabaseClient.from("projects").select("*").eq("owner_id",uid);
+async function loadMyProjects(userId){
+  const { data } = await supabaseClient.from("projects").select("*").eq("owner_id",userId);
   myProjects.innerHTML="";
   data.forEach(p=>{
     myProjects.innerHTML+=`
-      <div class="bg-white p-4 rounded shadow">
+      <div class="bg-white p-5 rounded shadow">
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
-        <button onclick="openChat('${p.id}')" class="border px-2 py-1 mt-2 rounded">Chat</button>
+        <button onclick="openChat('${p.id}')" class="mt-3 border px-3 py-1 rounded">Chat</button>
       </div>`;
   });
 }
 
 async function loadAllProjects(){
-  const {data} = await supabaseClient.from("projects").select("*");
+  const { data } = await supabaseClient.from("projects").select("*");
   projectList.innerHTML="";
   data.forEach(p=>{
     projectList.innerHTML+=`
-      <div class="bg-white p-4 rounded shadow">
+      <div class="bg-white p-5 rounded shadow">
         <h4 class="font-bold">${p.title}</h4>
         <p>${p.description}</p>
-        <button onclick="invest('${p.id}')" class="bg-green-600 text-white px-3 py-1 mt-2 rounded">Invest</button>
+        <button onclick="invest('${p.id}')" class="mt-3 bg-green-600 text-white px-3 py-1 rounded">Invest</button>
+        <button onclick="openChat('${p.id}')" class="mt-2 border px-3 py-1 rounded">Chat</button>
       </div>`;
   });
 }
 
 async function loadPartnerProjects(){
-  const {data} = await supabaseClient.from("projects").select("*");
+  const { data } = await supabaseClient.from("projects").select("*");
   partnerProjects.innerHTML="";
   data.forEach(p=>{
     partnerProjects.innerHTML+=`
-      <div class="bg-white p-4 rounded shadow">
+      <div class="bg-white p-5 rounded shadow">
         <h4 class="font-bold">${p.title}</h4>
-        <input id="skills-${p.id}" class="border p-2 w-full mt-2" placeholder="Your skills"/>
-        <button onclick="joinAsPartner('${p.id}')" class="bg-blue-600 text-white px-3 py-1 mt-2 rounded">Join</button>
+        <input id="skills-${p.id}" class="border p-2 w-full mt-2" placeholder="Your skills" />
+        <button onclick="joinAsPartner('${p.id}')" class="mt-2 bg-blue-600 text-white px-3 py-1 rounded">Join</button>
+        <button onclick="openChat('${p.id}')" class="mt-2 border px-3 py-1 rounded">Chat</button>
       </div>`;
   });
 }
 
 /* ================= INTEREST ================= */
-async function invest(pid){
-  const {data:{user}} = await supabaseClient.auth.getUser();
+async function invest(projectId){
+  const { data:{user} } = await supabaseClient.auth.getUser();
   await supabaseClient.from("project_interests").insert({
-    project_id:pid,user_id:user.id,role:"investor",status:"pending"
+    project_id:projectId,
+    user_id:user.id,
+    role:"investor",
+    status:"pending"
   });
-  showStatus("Investment interest sent");
+  showStatus("Investment sent");
 }
-async function joinAsPartner(pid){
-  const {data:{user}} = await supabaseClient.auth.getUser();
-  const skills=document.getElementById("skills-"+pid).value;
+
+async function joinAsPartner(projectId){
+  const skills=document.getElementById("skills-"+projectId).value;
+  const { data:{user} } = await supabaseClient.auth.getUser();
   await supabaseClient.from("project_interests").insert({
-    project_id:pid,user_id:user.id,role:"partner",skills,status:"pending"
+    project_id:projectId,
+    user_id:user.id,
+    role:"partner",
+    skills,
+    status:"pending"
   });
   showStatus("Joined as partner");
 }
 
 /* ================= CHAT ================= */
-let currentProject=null;
-function openChat(pid){
-  currentProject=pid;
+let currentChat=null;
+function openChat(id){
+  currentChat=id;
   chatModal.classList.remove("hidden");
   loadMessages();
 }
-function closeChat(){ chatModal.classList.add("hidden"); }
+function closeChat(){
+  chatModal.classList.add("hidden");
+}
 async function loadMessages(){
-  const {data} = await supabaseClient
+  const { data } = await supabaseClient
     .from("project_messages")
     .select("message,profiles(full_name)")
-    .eq("project_id",currentProject);
+    .eq("project_id",currentChat);
   chatMessages.innerHTML="";
   data.forEach(m=>{
     chatMessages.innerHTML+=`<p><b>${m.profiles.full_name}:</b> ${m.message}</p>`;
   });
 }
 async function sendMessage(){
-  const {data:{user}} = await supabaseClient.auth.getUser();
+  const { data:{user} } = await supabaseClient.auth.getUser();
   await supabaseClient.from("project_messages").insert({
-    project_id:currentProject,user_id:user.id,message:chatInput.value
+    project_id:currentChat,
+    user_id:user.id,
+    message:chatInput.value
   });
   chatInput.value="";
   loadMessages();
@@ -289,8 +309,3 @@ async function sendMessage(){
 
 </body>
 </html>
-
-
-
-
-
