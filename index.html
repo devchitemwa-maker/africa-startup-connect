@@ -1,160 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Africa Startup Connect</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <title>Africa Startup Connect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-100 min-h-screen">
 
-<!-- HEADER -->
-<header class="bg-white border-b shadow">
-  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-    <h1 class="text-xl font-bold text-blue-600">Africa Startup Connect</h1>
-    <button id="logoutBtn" class="hidden px-4 py-2 border rounded">Logout</button>
-  </div>
-</header>
+<div class="max-w-md mx-auto mt-16 bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-bold text-center mb-4">Africa Startup Connect</h2>
 
-<!-- AUTH -->
-<section id="auth" class="max-w-md mx-auto mt-16 bg-white p-8 rounded-lg shadow">
-  <h2 class="text-2xl font-bold text-center mb-6">Login / Sign Up</h2>
+  <div id="auth">
+    <input id="name" class="w-full p-2 border mb-2" placeholder="Full Name">
+    <input id="email" class="w-full p-2 border mb-2" placeholder="Email">
+    <input id="password" type="password" class="w-full p-2 border mb-2" placeholder="Password">
 
-  <input id="full_name" class="w-full border p-3 mb-3 rounded" placeholder="Full Name" />
-  <input id="email" class="w-full border p-3 mb-3 rounded" placeholder="Email" />
-  <input id="password" type="password" class="w-full border p-3 mb-3 rounded" placeholder="Password" />
+    <select id="role" class="w-full p-2 border mb-2">
+      <option value="">Select role</option>
+      <option value="entrepreneur">Entrepreneur</option>
+      <option value="investor">Investor</option>
+      <option value="partner">Partner</option>
+    </select>
 
-  <select id="role" class="w-full border p-3 mb-3 rounded">
-    <option value="">Select Role</option>
-    <option value="entrepreneur">Entrepreneur</option>
-    <option value="investor">Investor</option>
-    <option value="partner">Partner</option>
-  </select>
-
-  <button id="signupBtn" class="w-full bg-blue-600 text-white py-2 rounded mb-2">Create Account</button>
-  <button id="loginBtn" class="w-full border py-2 rounded">Login</button>
-</section>
-
-<!-- DASHBOARD -->
-<section id="dashboard" class="hidden max-w-5xl mx-auto mt-10">
-  <h2 class="text-2xl font-bold mb-2">Welcome <span id="userName"></span></h2>
-  <p class="mb-4">Role: <span id="userRole"></span></p>
-
-  <div id="entrepreneur" class="hidden p-4 bg-white rounded shadow">
-    <h3 class="font-bold mb-2">Entrepreneur Dashboard</h3>
-    <p>Create and manage your startup.</p>
+    <button onclick="signup()" class="w-full bg-blue-600 text-white p-2 mb-2">Sign Up</button>
+    <button onclick="login()" class="w-full border p-2">Login</button>
   </div>
 
-  <div id="investor" class="hidden p-4 bg-white rounded shadow">
-    <h3 class="font-bold mb-2">Investor Dashboard</h3>
-    <p>Browse and invest in startups.</p>
+  <div id="dashboard" class="hidden">
+    <h3 class="text-xl font-bold">Welcome <span id="userName"></span></h3>
+    <p>Your role: <span id="userRole"></span></p>
+    <button onclick="logout()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded">Logout</button>
   </div>
-
-  <div id="partner" class="hidden p-4 bg-white rounded shadow">
-    <h3 class="font-bold mb-2">Partner Dashboard</h3>
-    <p>Collaborate on projects.</p>
-  </div>
-</section>
+</div>
 
 <script>
-/* ================= SUPABASE CONFIG ================= */
 const supabase = window.supabase.createClient(
   "https://unyvcihnjlkanwfrnoop.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
 );
 
-/* ================= ELEMENTS ================= */
-const authBox = document.getElementById("auth");
-const dashboard = document.getElementById("dashboard");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const fullName = document.getElementById("full_name");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const role = document.getElementById("role");
-
-const userName = document.getElementById("userName");
-const userRole = document.getElementById("userRole");
-
-const entrepreneur = document.getElementById("entrepreneur");
-const investor = document.getElementById("investor");
-const partner = document.getElementById("partner");
-
-/* ================= AUTH LOGIC ================= */
-
-async function showDashboard() {
-  const { data } = await supabase.auth.getUser();
-  if (!data?.user) return;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", data.user.id)
-    .single();
-
-  auth.style.display = "none";
-  dashboard.style.display = "block";
-  logoutBtn.style.display = "block";
-
-  userName.textContent = profile.full_name;
-  userRole.textContent = profile.role;
-
-  entrepreneur.style.display = "none";
-  investor.style.display = "none";
-  partner.style.display = "none";
-
-  if (profile.role === "entrepreneur") entrepreneur.style.display = "block";
-  if (profile.role === "investor") investor.style.display = "block";
-  if (profile.role === "partner") partner.style.display = "block";
-}
-
-async function login() {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
-  });
-
-  if (error) return alert(error.message);
-  showDashboard();
-}
-
+// SIGN UP
 async function signup() {
-  const { data, error } = await supabase.auth.signUp({
-    email: email.value,
-    password: password.value
-  });
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const name = document.getElementById("name").value;
+  const role = document.getElementById("role").value;
 
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return alert(error.message);
 
   await supabase.from("profiles").insert({
     id: data.user.id,
-    full_name: fullName.value,
-    role: role.value
+    full_name: name,
+    role: role
   });
 
-  alert("Account created. Please login.");
+  alert("Account created! Please login.");
 }
 
-logoutBtn.onclick = async () => {
+// LOGIN
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) return alert(error.message);
+}
+
+// LOGOUT
+async function logout() {
   await supabase.auth.signOut();
   location.reload();
-};
+}
 
-/* BUTTONS */
-document.getElementById("loginBtn").onclick = login;
-document.getElementById("signupBtn").onclick = signup;
+// SESSION HANDLER
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (!session) return;
 
-/* AUTO LOGIN */
-supabase.auth.getSession().then(({ data }) => {
-  if (data.session) showDashboard();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("userName").textContent = profile.full_name;
+  document.getElementById("userRole").textContent = profile.role;
 });
 </script>
 
 </body>
 </html>
-
 
 
 
