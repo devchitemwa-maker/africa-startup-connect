@@ -10,7 +10,7 @@
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
-<!-- LOGIN / SIGNUP -->
+<!-- AUTH -->
 <div id="auth" class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
   <h2 class="text-2xl font-bold mb-4 text-center">Login / Signup</h2>
 
@@ -40,88 +40,89 @@
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const supabase = supabase.createClient(
-  "https://unyvcihnjlkanwfrnoop.supabase.co",   // 🔁 YOUR PROJECT URL
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"                  // 🔁 PASTE YOUR PUBLIC ANON KEY
+/* ================= SUPABASE (FIXED) ================= */
+
+// ✅ DO NOT overwrite `supabase`
+const supabaseClient = window.supabase.createClient(
+  "https://unyvcihnjlkanwfrnoop.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
 );
 
-/* ================= AUTH FUNCTIONS ================= */
+/* ================= AUTH ================= */
 
 async function signup() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const name = document.getElementById("name").value;
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  const name = nameInput.value;
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabaseClient.auth.signUp({
     email,
     password
   });
 
-  if (error) {
-    document.getElementById("msg").innerText = error.message;
-    return;
-  }
+  if (error) return show(error.message);
 
-  await supabase.from("profiles").insert({
+  await supabaseClient.from("profiles").insert({
     id: data.user.id,
     full_name: name
   });
 
-  document.getElementById("msg").innerText = "Account created. Please login.";
+  show("Signup successful. Now login.");
 }
 
 async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+  const email = emailInput.value;
+  const password = passwordInput.value;
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabaseClient.auth.signInWithPassword({
     email,
     password
   });
 
-  if (error) {
-    document.getElementById("msg").innerText = error.message;
-    return;
-  }
+  if (error) return show(error.message);
 }
 
 async function logout() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   showAuth();
 }
 
-/* ================= UI STATE ================= */
+/* ================= UI ================= */
+
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const nameInput = document.getElementById("name");
 
 function showDashboard(user) {
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-  document.getElementById("userInfo").innerText = `Logged in as ${user.email}`;
+  auth.style.display = "none";
+  dashboard.style.display = "block";
+  userInfo.innerText = `Logged in as ${user.email}`;
 }
 
 function showAuth() {
-  document.getElementById("auth").style.display = "block";
-  document.getElementById("dashboard").style.display = "none";
+  auth.style.display = "block";
+  dashboard.style.display = "none";
 }
 
-/* ================= SESSION LISTENER ================= */
+function show(msg) {
+  document.getElementById("msg").innerText = msg;
+}
 
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    showDashboard(session.user);
-  } else {
-    showAuth();
-  }
+/* ================= SESSION ================= */
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  if (session) showDashboard(session.user);
+  else showAuth();
 });
 
-/* Auto-check on load */
-supabase.auth.getSession().then(({ data }) => {
+supabaseClient.auth.getSession().then(({ data }) => {
   if (data.session) showDashboard(data.session.user);
 });
 </script>
 
 </body>
 </html>
+
 
 
 
