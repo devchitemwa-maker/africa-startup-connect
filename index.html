@@ -1,66 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Africa Startup Connect</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<title>Africa Startup Connect</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 p-10">
 
-<div class="max-w-md mx-auto mt-16 bg-white p-6 rounded shadow">
-  <h2 class="text-xl font-bold text-center mb-4">Africa Startup Connect</h2>
+<div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-bold mb-4">Login / Signup</h2>
 
-  <div id="auth">
-    <input id="name" class="w-full p-2 border mb-2" placeholder="Full Name">
-    <input id="email" class="w-full p-2 border mb-2" placeholder="Email">
-    <input id="password" type="password" class="w-full p-2 border mb-2" placeholder="Password">
+  <input id="email" class="border p-2 w-full mb-2" placeholder="Email" />
+  <input id="password" type="password" class="border p-2 w-full mb-2" placeholder="Password" />
+  <input id="name" class="border p-2 w-full mb-2" placeholder="Full Name (signup only)" />
 
-    <select id="role" class="w-full p-2 border mb-2">
-      <option value="">Select role</option>
-      <option value="entrepreneur">Entrepreneur</option>
-      <option value="investor">Investor</option>
-      <option value="partner">Partner</option>
-    </select>
+  <button onclick="signup()" class="bg-blue-600 text-white w-full py-2 rounded mb-2">
+    Sign Up
+  </button>
 
-    <button onclick="signup()" class="w-full bg-blue-600 text-white p-2 mb-2">Sign Up</button>
-    <button onclick="login()" class="w-full border p-2">Login</button>
-  </div>
+  <button onclick="login()" class="bg-gray-800 text-white w-full py-2 rounded">
+    Login
+  </button>
 
-  <div id="dashboard" class="hidden">
-    <h3 class="text-xl font-bold">Welcome <span id="userName"></span></h3>
-    <p>Your role: <span id="userRole"></span></p>
-    <button onclick="logout()" class="mt-4 bg-red-600 text-white px-4 py-2 rounded">Logout</button>
-  </div>
+  <p id="msg" class="mt-4 text-sm"></p>
 </div>
 
 <script>
 const supabase = window.supabase.createClient(
   "https://unyvcihnjlkanwfrnoop.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
+
 );
 
-// SIGN UP
 async function signup() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const name = document.getElementById("name").value;
-  const role = document.getElementById("role").value;
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return alert(error.message);
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) return show(error.message);
 
   await supabase.from("profiles").insert({
     id: data.user.id,
     full_name: name,
-    role: role
   });
 
-  alert("Account created! Please login.");
+  show("Account created successfully!");
 }
 
-// LOGIN
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -70,30 +63,14 @@ async function login() {
     password
   });
 
-  if (error) return alert(error.message);
+  if (error) return show(error.message);
+
+  show("Login successful!");
 }
 
-// LOGOUT
-async function logout() {
-  await supabase.auth.signOut();
-  location.reload();
+function show(msg) {
+  document.getElementById("msg").innerText = msg;
 }
-
-// SESSION HANDLER
-supabase.auth.onAuthStateChange(async (event, session) => {
-  if (!session) return;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", session.user.id)
-    .single();
-
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-  document.getElementById("userName").textContent = profile.full_name;
-  document.getElementById("userRole").textContent = profile.role;
-});
 </script>
 
 </body>
