@@ -24,10 +24,20 @@
 </div>
 
 <script>
+const SUPABASE_URL = "https://unyvcihnjlkanwfrnoop.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k";
+
 const supabase = window.supabase.createClient(
-  "https://unyvcihnjlkanwfrnoop.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVueXZjaWhuamxrYW53ZnJub29wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NTg0NjYsImV4cCI6MjA4MTUzNDQ2Nn0.F_MApAFHM_OZPbQzpScUtyRtDvWjsHBBC4rmqyB6V-k"
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
 );
+
+const authBox = document.getElementById("auth");
+const dashboard = document.getElementById("dashboard");
+const msg = document.getElementById("msg");
+const userInfo = document.getElementById("userInfo");
+
+/* ================= AUTH HANDLERS ================= */
 
 async function signup() {
   const email = document.getElementById("email").value;
@@ -40,16 +50,17 @@ async function signup() {
   });
 
   if (error) {
-    document.getElementById("msg").innerText = error.message;
+    msg.innerText = error.message;
     return;
   }
 
+  // Create profile
   await supabase.from("profiles").insert({
     id: data.user.id,
     full_name: name
   });
 
-  document.getElementById("msg").innerText = "Account created successfully!";
+  msg.innerText = "Account created. Please login.";
 }
 
 async function login() {
@@ -62,13 +73,34 @@ async function login() {
   });
 
   if (error) {
-    document.getElementById("msg").innerText = error.message;
+    msg.innerText = error.message;
     return;
   }
 
-  document.getElementById("msg").innerText = "Login successful!";
+  showDashboard(data.user);
 }
+
+async function logout() {
+  await supabase.auth.signOut();
+  location.reload();
+}
+
+/* ================= UI LOGIC ================= */
+
+function showDashboard(user) {
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("userInfo").innerText = `Logged in as ${user.email}`;
+}
+
+/* 🔥 VERY IMPORTANT: SESSION RESTORE */
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    showDashboard(session.user);
+  }
+});
 </script>
+
 
 </body>
 </html>
